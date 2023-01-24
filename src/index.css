@@ -6,8 +6,9 @@ input {
     @apply border rounded p-1;
 }
 input:focus {
-    @apply border-green-500 outline-none;
+    @apply border-blue-400 outline-none;
 }
-label {
-    @apply font-medium;
+
+.btn {
+    @apply p-2 text-white font-semibold tracking-wider rounded;
 }

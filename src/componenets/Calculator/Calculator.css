@@ -1,0 +1,9 @@
+.date-time input {
+    @apply border rounded p-1;
+}
+.date-time input:focus {
+    @apply border-green-500 outline-none;
+}
+.date-time label {
+    @apply font-medium;
+}

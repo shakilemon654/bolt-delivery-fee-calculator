@@ -1,98 +1,118 @@
-import React, { useState } from 'react';
-import { distanceCostCalculation, finalDeliveryFeeCalculation, itemNumbersCostCalculation, surChargeCalculation } from '../../utility/functions';
+import React, { useEffect, useState } from 'react';
+import { 
+    distanceCostCalculation, 
+    totalDeliveryFeeCalculation, 
+    formValidate, 
+    getCurrentDate, 
+    itemNumbersCostCalculation, 
+    surChargeCalculation, 
+    checkingRushHour,
+    getAllInputValues
+
+} from '../../utility/functions';
+
+import './Calculator.css';
+import FormInput from '../FormInput/FormInput';
 
 const Calculator = () => {
-    const initialFormValues = { cartValue: '', deliveryDistance: '', numberOfItems: ''};
-    const [formValues, setFormValues] = useState(initialFormValues);
+    const [values, setValues] = useState({
+        cartValue: '', 
+        deliveryDistance: '', 
+        numberOfItems: '', 
+        dateAndTime: ''
+    });
     const [formErrors, setFormErrors] = useState({});
-    const [deliveryFee, setDeliverFee] = useState(0);
+    const [deliveryFee, setDeliveryFee] = useState('');
+    
+    const inputs = [
+        {   
+            id: 1,
+            name: 'cartValue',
+            label: 'Cart value',
+            unit: '€',
+            errorMsg: formErrors?.cartValue
+        },
+        {   
+            id: 2,
+            name: 'deliveryDistance',
+            label: 'Delivery distance',
+            unit: 'm',
+            errorMsg: formErrors?.deliveryDistance
+        },
+        {   
+            id: 3,
+            name: 'numberOfItems',
+            label: 'Number of items',
+            errorMsg: formErrors?.numberOfItems
+        },
+        {   
+            id: 4,
+            name: 'dateAndTime',
+            label: 'Date & time',
+            type:'datetime-local',
+            min: getCurrentDate(),
+            errorMsg: formErrors?.dateAndTime
+        }
+    ];
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormValues({...formValues, [name]: value});
+        setValues({...values, [name]: value});
     }
 
-    const handleSubmit = (e) => {
+    useEffect(() => {
+        setFormErrors(formValidate(values));
+        setDeliveryFee('');
+    }, [values])
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setFormErrors(formValidate(formValues));
+        const errors = formValidate(values);
+        setFormErrors(errors);
 
-        if (Object.keys(formErrors).length === 0) {
-            const cartValue = parseFloat(formValues.cartValue);
-            const deliveryDistance = parseInt(formValues.deliveryDistance);
-            const numberOfItems = parseInt(formValues.numberOfItems);
+        if (Object.keys(errors).length === 0) {
+            const [cartValue, deliveryDistance, numberOfItems, dateAndTime] = getAllInputValues(values);
             
-
             const surCharge = surChargeCalculation(cartValue);
             const deliveryDistanceCost = distanceCostCalculation(deliveryDistance);
             const additionalCostBasedOnItemNumbers = itemNumbersCostCalculation(numberOfItems);
+            const ifRushHour = checkingRushHour(dateAndTime);
 
-            const totalDeliveryFee = finalDeliveryFeeCalculation(surCharge, deliveryDistanceCost, additionalCostBasedOnItemNumbers, cartValue);
-            setDeliverFee(totalDeliveryFee);
-        }
-    }
+            // console.log('surCharge', surCharge);
+            // console.log('deliveryDistanceCost', deliveryDistanceCost);
+            // console.log('number of items cost', additionalCostBasedOnItemNumbers);
 
-    const formValidate = values => {
-        const errors = {};
-    
-        if (!values.cartValue.match(/^([0-9]{1,})?(\.)?([0-9]{1,})?$/)) {
-            errors.cartValue = 'Only numbers or decimals';
+            const totalDeliveryFee = totalDeliveryFeeCalculation(surCharge, deliveryDistanceCost, additionalCostBasedOnItemNumbers, cartValue, ifRushHour);
+            setDeliveryFee(totalDeliveryFee.toFixed(2));
         }
-        if (!values.deliveryDistance.match(/^[0-9\b]+$/)) {
-            errors.deliveryDistance = 'Only full numbers';
+        else {
+            setDeliveryFee('');
         }
-        if (!values.numberOfItems.match(/^[0-9\b]+$/)) {
-            errors.numberOfItems = 'Only full numbers';
-        }
-
-        return errors;
     }
 
     return (
-        <div className='w-full flex flex-col justify-center items-center'>
-            <h3>Bolt Delivery Fee Calculator</h3>
+        <div className='w-full flex flex-col items-center p-4'>
+            <h3 className='mt-8 mb-12 font-bold text-xl text-blue-400'>Wolt Delivery Fee Calculator</h3>
 
-            <form className='grid grid-cols-2 gap-4 mt-8'>
-                <label>Cart value</label>
-                <div>
-                    <input 
-                        name='cartValue'
-                        value={formValues.cartValue}
-                        onChange={handleChange}
-                    />
-                    <p className='text-red-500'>{formErrors.cartValue}</p>
-                </div>
-            
-                <label>Delivery distance</label>
-                <div>
-                    <input 
-                        name='deliveryDistance'
-                        value={formValues.deliveryDistance}
-                        onChange={handleChange}
-                    />
-                    <p className='text-red-500'>{formErrors.deliveryDistance}</p>
-                </div>
-            
-                <label>Number of items</label>
-                <div>
-                    <input 
-                        name='numberOfItems'
-                        value={formValues.numberOfItems}
-                        onChange={handleChange}
-                    />
-                    <p className='text-red-500'>{formErrors.numberOfItems}</p>
-                </div>
-                <div className='col-span-2 flex justify-center items-center mt-4'>
-                    <button 
-                        className='bg-green-500 p-2
-                        text-white font-semibold tracking-wider
-                        rounded'
-                        onClick={handleSubmit}
-                    >
+            <div>
+                <form className='grid grid-cols-1 gap-y-4'>
+                    {
+                        inputs.map(input => <FormInput 
+                            key={input.id} 
+                            input={input} 
+                            value={values[input.name]} 
+                            handleChange={handleChange} 
+                            />
+                        )
+                    }
+                    <button className='btn bg-blue-400' onClick={handleSubmit}>
                         Calculate delivery fee
                     </button>
-                </div>
-            </form>
-            <span className='mt-4'>Delivery fee: {deliveryFee.toFixed(2)}</span>
+                </form>
+                <p className='mt-4 text-center btn bg-orange-400'>
+                    Delivery fee: {deliveryFee}€
+                </p>
+            </div>
         </div>
     );
 };
