@@ -1,8 +1,6 @@
-import React from 'react';
-
 const FormInput = ({input, value, handleChange}) => {
     const { name, label, errorMsg } = input;
-    
+
     return (
         <div className='grid grid-cols-3 gap-x-6'>
             <label>{label}</label>
@@ -14,11 +12,10 @@ const FormInput = ({input, value, handleChange}) => {
                         type={input?.type}
                         min={input?.min}
                         onChange={handleChange}
-                        
                     />
                     <span className='font-medium'>{input?.unit}</span>
                 </div>
-                <span className='block text-sm font-normal text-sky-500'>
+                <span className='text-sky-500 block text-sm font-normal'>
                         {errorMsg}
                 </span>
             </div>

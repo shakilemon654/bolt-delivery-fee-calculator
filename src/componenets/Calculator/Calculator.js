@@ -23,7 +23,7 @@ const Calculator = () => {
     });
     const [formErrors, setFormErrors] = useState({});
     const [deliveryFee, setDeliveryFee] = useState('');
-    
+
     const inputs = [
         {   
             id: 1,
@@ -65,7 +65,7 @@ const Calculator = () => {
         setDeliveryFee('');
     }, [values])
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         const errors = formValidate(values);
         setFormErrors(errors);
@@ -101,7 +101,7 @@ const Calculator = () => {
                             key={input.id} 
                             input={input} 
                             value={values[input.name]} 
-                            handleChange={handleChange} 
+                            handleChange={handleChange}
                             />
                         )
                     }
